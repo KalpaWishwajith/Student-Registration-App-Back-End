@@ -3,20 +3,16 @@ using Student_Registration_Web_App.EntityModels;
 
 namespace Student_Registration_Web_App.Repositories
 {
-    public class EFDbContext : DbContext
+    public class EFDbContext(DbContextOptions<EFDbContext> options, IConfiguration configuration) : DbContext(options)
     {
-        private readonly IConfiguration _configuration;
-
-        public EFDbContext(DbContextOptions<EFDbContext> options, IConfiguration configuration)
-            : base(options)
-        {
-            _configuration = configuration;
-        }
+        private readonly IConfiguration _configuration = configuration;
 
         public DbSet<Student> Students { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
+
+        public DbSet<StudentCourseResult> StudentCourseResults { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

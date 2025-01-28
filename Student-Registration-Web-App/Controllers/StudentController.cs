@@ -121,6 +121,60 @@ namespace Student_Registration_Web_App.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
+
+        [HttpGet("enrolled-courses/{studentId}")]
+        public async Task<ActionResult<List<Course>>> GetEnrolledCoursesByStudent(int studentId)
+        {
+            try
+            {
+
+                var studentToCheck = await _studentRepository.GetStudentByIdAsync(studentId);
+                if (studentToCheck == null)
+                {
+                    return NotFound($"Student with ID {studentId} not found.");
+                }
+
+                var courses = await _studentRepository.GetEnrolledCoursesByStudentAsync(studentId);
+                if (courses == null || courses.Count == 0)
+                {
+                    return NotFound($"No courses found for StudentID: {studentId}");
+                }
+
+                return Ok(new
+                {
+                    Message = $"Enrolled Courses by student with ID {studentId} retrieved successfully.",
+                    Data = courses
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        // GET: api/student/all-students-with-courses
+        [HttpGet("all-students-with-courses")]
+        public async Task<ActionResult<Dictionary<Student, List<Course>>>> GetAllStudentsWithCourses()
+        {
+            try
+            {
+                var studentsWithCourses = await _studentRepository.GetAllStudentsWithCoursesAsync();
+                if (studentsWithCourses == null || studentsWithCourses.Count == 0)
+                {
+                    return NotFound("No students with enrolled courses found.");
+                }
+
+                return Ok(new
+                {
+                    Message = "Student with courses retrieved successfully.",
+                    Data = studentsWithCourses
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
     }
 }
 

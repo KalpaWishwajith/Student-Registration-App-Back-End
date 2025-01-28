@@ -9,6 +9,7 @@ namespace Student_Registration_Web_App.EntityModels
         public int CourseID { get; set; }
         public int StudentID { get; set; }
         public DateTime EnrolledDate { get; set; }
+        public bool IsEnrolled { get; set; }
         public DateTime? UnEnrolledDate { get; set; }
 
         public Student Student { get; set; }

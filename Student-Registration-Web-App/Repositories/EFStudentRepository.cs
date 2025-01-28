@@ -8,14 +8,9 @@ using System.Threading.Tasks;
 
 namespace Student_Registration_Web_App.Repositories
 {
-    public class EFStudentRepository : IStudentRepository
+    public class EFStudentRepository(EFDbContext context) : IStudentRepository
     {
-        private readonly EFDbContext _context;
-
-        public EFStudentRepository(EFDbContext context)
-        {
-            _context = context;
-        }
+        private readonly EFDbContext _context = context;
 
         public async Task<List<Student>> GetStudentsAsync()
         {
@@ -43,9 +38,9 @@ namespace Student_Registration_Web_App.Repositories
                     .FirstOrDefault();
 
                 if (student == null)
-        {
-            throw new KeyNotFoundException($"Student with ID {studentId} not found.");
-        }
+            {
+                throw new KeyNotFoundException($"Student with ID {studentId} not found.");
+            }
 
         return student;
     }
@@ -127,6 +122,54 @@ namespace Student_Registration_Web_App.Repositories
             catch (Exception ex)
             {
                 throw new ApplicationException("An unexpected error occurred while deleting the student.", ex);
+            }
+        }
+
+        public async Task<List<Course>> GetEnrolledCoursesByStudentAsync(int studentId)
+        {
+            try
+            {
+                if (studentId <= 0)
+                {
+                    throw new ArgumentException("Invalid student ID.", nameof(studentId));
+                }
+
+                var courses = await _context.Courses
+                    .FromSqlRaw(
+                        "EXEC GetEnrolledCoursesByStudent @StudentID",
+                        new SqlParameter("@StudentID", studentId)
+                    )
+                    .ToListAsync();
+
+                return courses;
+            }
+            catch (SqlException ex)
+            {
+                throw new ApplicationException("An error occurred while fetching enrolled courses for the student.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An unexpected error occurred while fetching enrolled courses for the student.", ex);
+            }
+        }
+
+        public async Task<List<StudentCourseResult>> GetAllStudentsWithCoursesAsync()
+        {
+            try
+            {
+                var results = await _context.StudentCourseResults
+                    .FromSqlRaw("EXEC GetAllStudentsWithCourses")
+                    .ToListAsync();
+
+                return results;
+            }
+            catch (SqlException ex)
+            {
+                throw new ApplicationException("An error occurred while fetching all students and their courses.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An unexpected error occurred while fetching all students and their courses.", ex);
             }
         }
     }

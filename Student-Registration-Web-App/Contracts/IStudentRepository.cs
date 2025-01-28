@@ -9,5 +9,7 @@ namespace Student_Registration_Web_App.Contracts
         Task AddStudentAsync(Student student);
         Task UpdateStudentAsync(Student student);
         Task DeleteStudentAsync(int studentId);
+        Task<List<Course>> GetEnrolledCoursesByStudentAsync(int studentId);
+        Task<List<StudentCourseResult>> GetAllStudentsWithCoursesAsync();
     }
 }
