@@ -8,6 +8,6 @@ namespace Student_Registration_Web_App.Contracts
         Task AddAdminAsync(Admin admin);
         Task UpdateAdminAsync(Admin admin);
         Task DeleteAdminAsync(int adminId);
-        Task GetAdminByIdAsync(int id);
+        Task<Admin> GetAdminByIdAsync(int id);
     }
 }

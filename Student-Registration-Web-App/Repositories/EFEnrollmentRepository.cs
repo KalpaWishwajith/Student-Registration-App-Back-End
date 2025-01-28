@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Student_Registration_Web_App.Contracts;
 using Student_Registration_Web_App.EntityModels;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Student_Registration_Web_App.Repositories
 {
@@ -16,20 +19,53 @@ namespace Student_Registration_Web_App.Repositories
 
         public async Task<List<Enrollment>> GetEnrollmentsAsync()
         {
-            return await _context.Enrollments.FromSqlRaw("EXEC GetEnrollments").ToListAsync();
+            try
+            {
+                return await _context.Enrollments.FromSqlRaw("EXEC GetEnrollments").ToListAsync();
+            }
+            catch (SqlException ex)
+            {
+                throw new ApplicationException("An error occurred while retrieving enrollments.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An unexpected error occurred while retrieving enrollments.", ex);
+            }
         }
 
         public async Task AddEnrollmentAsync(Enrollment enrollment)
         {
-            await _context.Database.ExecuteSqlRawAsync("EXEC AddEnrollment @CourseID, @StudentID",
-                new SqlParameter("@CourseID", enrollment.CourseID),
-                new SqlParameter("@StudentID", enrollment.StudentID));
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync("EXEC AddEnrollment @CourseID, @StudentID",
+                    new SqlParameter("@CourseID", enrollment.CourseID),
+                    new SqlParameter("@StudentID", enrollment.StudentID));
+            }
+            catch (SqlException ex)
+            {
+                throw new ApplicationException("An error occurred while adding the enrollment.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An unexpected error occurred while adding the enrollment.", ex);
+            }
         }
 
         public async Task RemoveEnrollmentAsync(int enrollmentId)
         {
-            await _context.Database.ExecuteSqlRawAsync("EXEC RemoveEnrollment @EnrollmentID",
-                new SqlParameter("@EnrollmentID", enrollmentId));
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync("EXEC RemoveEnrollment @EnrollmentID",
+                    new SqlParameter("@EnrollmentID", enrollmentId));
+            }
+            catch (SqlException ex)
+            {
+                throw new ApplicationException("An error occurred while removing the enrollment.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An unexpected error occurred while removing the enrollment.", ex);
+            }
         }
     }
 }

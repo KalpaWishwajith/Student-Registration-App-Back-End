@@ -7,36 +7,35 @@ using System.Threading.Tasks;
 
 namespace Student_Registration_Web_App.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("v1/admins")]
     [ApiController]
-    public class AdminController : ControllerBase
+    public class AdminController(IAdminRepository adminRepository) : ControllerBase
     {
-        private readonly IAdminRepository _adminRepository;
+        private readonly IAdminRepository _adminRepository = adminRepository;
 
-        public AdminController(IAdminRepository adminRepository)
-        {
-            _adminRepository = adminRepository;
-        }
-
-        [HttpGet("ById/{id}")]
-        public async Task<ActionResult<Admin>> GetAdminById(int id)
+        [HttpGet("GetById/{adminId}")]
+        public async Task<ActionResult<Admin>> GetAdminById(int adminId)
         {
             try
             {
-                var admin = await _adminRepository.GetAdminByIdAsync(id);
+                var admin = await _adminRepository.GetAdminByIdAsync(adminId);
                 if (admin == null)
                 {
-                    return NotFound($"Admin with ID {id} not found.");
+                    return NotFound($"Admin with ID {adminId} not found.");
                 }
-                return Ok(admin);
+                return Ok(new
+                {
+                    Message = $"Admin with username {adminId} retrieved successfully.",
+                    Data = admin
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the database.");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
 
-        [HttpGet("{username}")]
+        [HttpGet("GetByUsername{username}")]
         public async Task<ActionResult<Admin>> GetAdmin(string username)
         {
             try
@@ -46,15 +45,19 @@ namespace Student_Registration_Web_App.Controllers
                 {
                     return NotFound($"Admin with username {username} not found.");
                 }
-                return Ok(admin);
+                return Ok(new
+                {
+                    Message = $"Admin with username {username} retrieved successfully.",
+                    Data = admin
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the database.");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
 
-        [HttpPost]
+        [HttpPost("register")]
         public async Task<ActionResult<Admin>> AddAdmin(Admin admin)
         {
             try
@@ -69,16 +72,16 @@ namespace Student_Registration_Web_App.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error creating new admin record.");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAdmin(int id, Admin admin)
+        [HttpPut("update/{adminId}")]
+        public async Task<IActionResult> UpdateAdmin(int adminId, Admin admin)
         {
             try
             {
-                if (id != admin.AdminID)
+                if (adminId != admin.AdminID)
                 {
                     return BadRequest("Admin ID mismatch.");
                 }
@@ -86,35 +89,43 @@ namespace Student_Registration_Web_App.Controllers
                 var adminToUpdate = await _adminRepository.GetAdminByUsernameAsync(admin.Username);
                 if (adminToUpdate == null)
                 {
-                    return NotFound($"Admin with ID {id} not found.");
+                    return NotFound($"Admin with ID {adminId} not found.");
                 }
 
                 await _adminRepository.UpdateAdminAsync(admin);
-                return NoContent();
+                return Ok(new
+                {
+                    Message = "Admin updated successfully.",
+                    UpdatedAdmin = admin
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error updating admin record.");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAdmin(int id)
+        [HttpDelete("delete/{adminId}")]
+        public async Task<IActionResult> DeleteAdmin(int adminId)
         {
             try
             {
-                var adminToDelete = await _adminRepository.GetAdminByIdAsync(id);
+                var adminToDelete = await _adminRepository.GetAdminByIdAsync(adminId);
                 if (adminToDelete == null)
                 {
-                    return NotFound($"Admin with ID {id} not found.");
+                    return NotFound($"Admin with ID {adminId} not found.");
                 }
 
-                await _adminRepository.DeleteAdminAsync(id);
-                return NoContent();
+                await _adminRepository.DeleteAdminAsync(adminId);
+                return Ok(new
+                {
+                    Message = "Admin deleted successfully.",
+                    DeletedAdmin = adminToDelete
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting admin record.");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
     }

@@ -20,9 +20,17 @@ namespace Student_Registration_Web_App.Repositories
         {
             try
             {
-                return await _context.Admins
+                var admin =   _context.Admins
                     .FromSqlRaw("EXEC GetAdminByUsername @Username", new SqlParameter("@Username", username))
-                    .FirstOrDefaultAsync();
+                    .AsEnumerable()
+                    .FirstOrDefault();
+
+                if (admin == null)
+                {
+                    throw new KeyNotFoundException($"Student with username {username} not found.");
+                }
+
+                return admin;
             }
             catch (Exception ex)
             {
@@ -31,13 +39,22 @@ namespace Student_Registration_Web_App.Repositories
             }
         }
 
-        public async Task<Admin> GetAdminByIdAsync(int id)
+        public async Task<Admin> GetAdminByIdAsync(int adminId)
         {
             try
             {
-                return await _context.Admins
-                    .FromSqlRaw("EXEC GetAdminById @AdminID", new SqlParameter("@AdminID", id))
-                    .FirstOrDefaultAsync();
+                var admin=   _context.Admins
+                    .FromSqlRaw("EXEC GetAdminById @AdminID", new SqlParameter("@AdminID", adminId))
+                    .AsEnumerable()
+                    .FirstOrDefault();
+
+                if (admin == null)
+                {
+                    throw new KeyNotFoundException($"Student with ID {adminId} not found.");
+                    
+                }
+
+                    return admin;
             }
             catch (Exception ex)
             {

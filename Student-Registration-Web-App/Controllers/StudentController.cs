@@ -1,62 +1,126 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Student_Registration_Web_App.Contracts;
 using Student_Registration_Web_App.EntityModels;
+using Student_Registration_Web_App.Repositories;
 
 namespace Student_Registration_Web_App.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("v1/students")] // Base route for the controller
     [ApiController]
-    public class StudentController : ControllerBase
+    public class StudentController(IStudentRepository studentRepository) : ControllerBase
     {
-        private readonly IStudentRepository _studentRepository;
+        private readonly IStudentRepository _studentRepository = studentRepository;
 
-        public StudentController(IStudentRepository studentRepository)
-        {
-            _studentRepository = studentRepository;
-        }
-
-        [HttpGet]
+        [HttpGet("all")] // Change route to "api/students/all"
         public async Task<ActionResult<List<Student>>> GetStudents()
         {
-            return await _studentRepository.GetStudentsAsync();
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(int id)
-        {
-            var student = await _studentRepository.GetStudentByIdAsync(id);
-            if (student == null)
+            try
             {
-                return NotFound();
+                var students = await _studentRepository.GetStudentsAsync();
+                return Ok(new
+                {
+                    Message = "Students retrieved successfully.",
+                    Data = students
+                });
             }
-            return student;
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
 
-        [HttpPost]
+        [HttpGet("{studentId}")]
+        public async Task<ActionResult<Student>> GetStudent(int studentId)
+        {
+            try
+            {
+                var student = await _studentRepository.GetStudentByIdAsync(studentId);
+                if (student == null)
+                {
+                    return NotFound();
+                }
+                return Ok(new
+                {
+                    Message = $"Student with ID {studentId} retreived successfully.",
+                    Data = student
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpPost("register")]
         public async Task<ActionResult<Student>> AddStudent(Student student)
         {
-            await _studentRepository.AddStudentAsync(student);
-            return CreatedAtAction(nameof(GetStudent), new { id = student.StudentID }, student);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStudent(int id, Student student)
-        {
-            if (id != student.StudentID)
+            try
             {
-                return BadRequest();
-            }
+                if (student == null)
+                {
+                    return BadRequest("Student object is null.");
+                }
 
-            await _studentRepository.UpdateStudentAsync(student);
-            return NoContent();
+                await _studentRepository.AddStudentAsync(student);
+                return CreatedAtAction(nameof(GetStudent), new { id = student.StudentID }, student);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteStudent(int id)
+        [HttpPut("update/{studentId}")]
+        public async Task<IActionResult> UpdateStudent(int studentId, Student student)
         {
-            await _studentRepository.DeleteStudentAsync(id);
-            return NoContent();
+            try
+            {
+                if (student == null || studentId != student.StudentID)
+                {
+                    return BadRequest("Invalid student data.");
+                }
+
+                var existingStudent = await _studentRepository.GetStudentByIdAsync(studentId);
+                if (existingStudent == null)
+                {
+                    return NotFound($"Student with ID {studentId} not found.");
+                }
+
+                await _studentRepository.UpdateStudentAsync(student);
+                return Ok(new
+                {
+                    Message = "Student updated successfully.",
+                    UpdatedStudent = student
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("delete/{studentId}")]
+        public async Task<IActionResult> DeleteStudent(int studentId)
+        {
+            try
+            {
+                var studentToDelete = await _studentRepository.GetStudentByIdAsync(studentId);
+                if (studentToDelete == null)
+                {
+                    return NotFound($"Student with ID {studentId} not found.");
+                }
+                await _studentRepository.DeleteStudentAsync(studentId);
+                return Ok(new
+                {
+                    Message = "Student deleted successfully.",
+                    DeletedStudent = studentToDelete
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
     }
 }
+

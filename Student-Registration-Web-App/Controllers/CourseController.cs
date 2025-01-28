@@ -2,61 +2,128 @@
 using Microsoft.AspNetCore.Mvc;
 using Student_Registration_Web_App.Contracts;
 using Student_Registration_Web_App.EntityModels;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Student_Registration_Web_App.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("v1/courses")]
     [ApiController]
-    public class CourseController : ControllerBase
+    public class CourseController(ICourseRepository courseRepository) : ControllerBase
     {
-        private readonly ICourseRepository _courseRepository;
+        private readonly ICourseRepository _courseRepository = courseRepository;
 
-        public CourseController(ICourseRepository courseRepository)
-        {
-            _courseRepository = courseRepository;
-        }
-
-        [HttpGet]
+        [HttpGet("all")]
         public async Task<ActionResult<List<Course>>> GetCourses()
         {
-            return await _courseRepository.GetCoursesAsync();
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Course>> GetCourse(int id)
-        {
-            var course = await _courseRepository.GetCourseByIdAsync(id);
-            if (course == null)
+            try
             {
-                return NotFound();
+                var courses = await _courseRepository.GetCoursesAsync();
+                return Ok(new
+                {
+                    Message = "Courses retrieved successfully.",
+                    Data = courses
+                });
             }
-            return course;
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
 
-        [HttpPost]
+        [HttpGet("{courseId}")]
+        public async Task<ActionResult<Course>> GetCourse(int courseId)
+        {
+            try
+            {
+                var course = await _courseRepository.GetCourseByIdAsync(courseId);
+                if (course == null)
+                {
+                    return NotFound($"Course with ID {courseId} not found.");
+                }
+                return Ok(new
+                {
+                    Message = $"Course with ID {courseId} retrieved successfully.",
+                    Data = course
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpPost("addCourse")]
         public async Task<ActionResult<Course>> AddCourse(Course course)
         {
-            await _courseRepository.AddCourseAsync(course);
-            return CreatedAtAction(nameof(GetCourse), new { id = course.CourseID }, course);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCourse(int id, Course course)
-        {
-            if (id != course.CourseID)
+            try
             {
-                return BadRequest();
-            }
+                if (course == null)
+                {
+                    return BadRequest("Course object is null.");
+                }
 
-            await _courseRepository.UpdateCourseAsync(course);
-            return NoContent();
+                await _courseRepository.AddCourseAsync(course);
+                return CreatedAtAction(nameof(GetCourse), new { id = course.CourseID }, course);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCourse(int id)
+        [HttpPut("update/{courseId}")]
+        public async Task<IActionResult> UpdateCourse(int courseId, Course course)
         {
-            await _courseRepository.DeleteCourseAsync(id);
-            return NoContent();
+            try
+            {
+                if (courseId != course.CourseID)
+                {
+                    return BadRequest("Course ID mismatch.");
+                }
+
+                var existingCourse = await _courseRepository.GetCourseByIdAsync(courseId);
+                if (existingCourse == null)
+                {
+                    return NotFound($"Course with ID {courseId} not found.");
+                }
+
+                await _courseRepository.UpdateCourseAsync(course);
+                return Ok(new
+                {
+                    Message = "Course updated successfully.",
+                    UpdatedCourse = course
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("delete/{courseId}")]
+        public async Task<IActionResult> DeleteCourse(int courseId)
+        {
+            try
+            {
+                var courseToDelete = await _courseRepository.GetCourseByIdAsync(courseId);
+                if (courseToDelete == null)
+                {
+                    return NotFound($"Course with ID {courseId} not found.");
+                }
+
+                await _courseRepository.DeleteCourseAsync(courseId);
+                return Ok(new
+                {
+                    Message = "Course deleted successfully.",
+                    DeletedCourse = courseToDelete
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
     }
 }

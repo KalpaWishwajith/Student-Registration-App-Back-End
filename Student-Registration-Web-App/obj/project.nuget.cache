@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "qsY+0Vyz9XoIGT/+LvS8ohnhH+Q8XVYG8BBEXj1/+ZWdR0sIHTYA02dDHD0jgY2RVIyLEIYLUmGwBmc3IqvSrQ==",
+  "dgSpecHash": "vuqweyCLFteuX5QrZwg3D6jWHHcoa2rBLZDFd9HOAv0idi5CHl5X/LyJJvVBPd+Szk+pTW9apT9F4x25VY8tcw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Kalpa Wishwajith\\source\\repos\\Student-Registration-Web-App\\Student-Registration-Web-App\\Student-Registration-Web-App.csproj",
+  "projectFilePath": "C:\\Users\\Kalpa Wishwajith\\Desktop\\Ascent Project\\Back-End\\Student-Registration-App-Back-End\\Student-Registration-Web-App\\Student-Registration-Web-App.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Kalpa Wishwajith\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\Kalpa Wishwajith\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

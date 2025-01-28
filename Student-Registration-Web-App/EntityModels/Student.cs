@@ -10,7 +10,7 @@ namespace Student_Registration_Web_App.EntityModels
         public string LastName { get; set; }
         public string Email { get; set; }
         public string PasswordHash { get; set; }
-        public bool Deleted { get; set; }
+        public bool IsDeleted { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public DateTime? DeletedDate { get; set; }

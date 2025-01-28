@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Student_Registration_Web_App.Contracts;
 using Student_Registration_Web_App.Repositories;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
