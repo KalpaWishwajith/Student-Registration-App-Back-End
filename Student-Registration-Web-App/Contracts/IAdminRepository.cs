@@ -4,6 +4,7 @@ namespace Student_Registration_Web_App.Contracts
 {
     public interface IAdminRepository
     {
+        Task<Admin> AdminLoginAsync(string username, string password);
         Task<Admin> GetAdminByUsernameAsync(string username);
         Task AddAdminAsync(Admin admin);
         Task UpdateAdminAsync(Admin admin);

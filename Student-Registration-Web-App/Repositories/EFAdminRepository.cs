@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Student_Registration_Web_App.Contracts;
 using Student_Registration_Web_App.EntityModels;
@@ -14,6 +15,38 @@ namespace Student_Registration_Web_App.Repositories
         public EFAdminRepository(EFDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<Admin> AdminLoginAsync(string username, string password)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+                {
+                    throw new ArgumentException("Username and password are required.");
+                }
+
+
+                var admin = _context.Admins
+                    .FromSqlRaw("EXEC LoginAdmin @Username, @PasswordHash", new SqlParameter("@Username", username), new SqlParameter("@PasswordHash", password))
+                    .AsEnumerable()
+                    .FirstOrDefault();
+
+                if (admin == null)
+                {
+                    throw new InvalidOperationException("Invalid username or password.");
+                }
+
+                
+               return admin;
+                
+
+                
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An unexpected error occurred.", ex);
+            }
         }
 
         public async Task<Admin> GetAdminByUsernameAsync(string username)
@@ -68,7 +101,7 @@ namespace Student_Registration_Web_App.Repositories
             try
             {
                 await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC AddAdmin @Username, @PasswordHash, ",
+                    "EXEC AddAdmin @Username, @PasswordHash",
                     new SqlParameter("@Username", admin.Username),
                     new SqlParameter("@PasswordHash", admin.PasswordHash));
             }

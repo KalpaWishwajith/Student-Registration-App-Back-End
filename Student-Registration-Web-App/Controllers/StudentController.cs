@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using Student_Registration_Web_App.Contracts;
 using Student_Registration_Web_App.EntityModels;
 using Student_Registration_Web_App.Repositories;
@@ -11,7 +12,36 @@ namespace Student_Registration_Web_App.Controllers
     {
         private readonly IStudentRepository _studentRepository = studentRepository;
 
-        [HttpGet("all")] // Change route to "api/students/all"
+        [HttpPost("login")]
+        public async Task<ActionResult<Student>> LoginStudent(EntityModels.LoginRequest loginRequest)
+        {
+            try
+            {
+                if (loginRequest == null || string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.Password))
+                {
+                    return BadRequest("Email and password are required.");
+                }
+
+                var student = await _studentRepository.LoginStudentAsync(loginRequest.Email, loginRequest.Password);
+                if (student == null)
+                {
+                    return Unauthorized("Invalid email or password.");
+                }
+
+                return Ok(new
+                {
+                    Message = "Login successful.",
+                    Data = student,
+                    Role = "Student"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpGet("all")] 
         public async Task<ActionResult<List<Student>>> GetStudents()
         {
             try
@@ -62,7 +92,11 @@ namespace Student_Registration_Web_App.Controllers
                 }
 
                 await _studentRepository.AddStudentAsync(student);
-                return CreatedAtAction(nameof(GetStudent), new { id = student.StudentID }, student);
+                return Ok(new
+                {
+                    Message = "Student created successfully.",
+                    Data = student
+                });
             }
             catch (Exception ex)
             {

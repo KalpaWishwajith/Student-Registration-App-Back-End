@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Student_Registration_Web_App.Contracts;
 using Student_Registration_Web_App.EntityModels;
@@ -11,6 +12,39 @@ namespace Student_Registration_Web_App.Repositories
     public class EFStudentRepository(EFDbContext context) : IStudentRepository
     {
         private readonly EFDbContext _context = context;
+
+        public async Task<Student> LoginStudentAsync(string email, string password)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+                {
+                    throw new ArgumentException("Email and password are required.");
+                }
+
+                var passwordHasher = new PasswordHasher<string>();
+
+                var student =  _context.Students
+                    .FromSqlRaw("EXEC LoginStudent @Email, @PasswordHash", new SqlParameter("@Email", email), new SqlParameter("@PasswordHash",password))
+                    .AsEnumerable()
+                    .FirstOrDefault();
+
+                if (student == null)
+                {
+                    throw new InvalidOperationException("Invalid email or password.");
+                }
+
+                    return student;
+                
+
+                
+            }
+            
+            catch (Exception ex)
+            {
+                throw new ApplicationException("An unexpected error occurred.", ex);
+            }
+        }
 
         public async Task<List<Student>> GetStudentsAsync()
         {
@@ -34,7 +68,7 @@ namespace Student_Registration_Web_App.Repositories
     {
                 var student = _context.Students
                     .FromSqlRaw("EXEC GetStudentById @StudentID", new SqlParameter("@StudentID", studentId))
-                    .AsEnumerable() // Perform further operations on the client side
+                    .AsEnumerable() 
                     .FirstOrDefault();
 
                 if (student == null)
@@ -62,6 +96,8 @@ namespace Student_Registration_Web_App.Repositories
                 {
                     throw new ArgumentNullException(nameof(student), "Student object cannot be null.");
                 }
+
+           
 
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC AddStudent @FirstName, @LastName, @Email, @PasswordHash",

@@ -4,6 +4,7 @@ namespace Student_Registration_Web_App.Contracts
 {
     public interface IStudentRepository
     {
+        Task<Student> LoginStudentAsync(string email, string password);
         Task<List<Student>> GetStudentsAsync();
         Task<Student> GetStudentByIdAsync(int studentId);
         Task AddStudentAsync(Student student);

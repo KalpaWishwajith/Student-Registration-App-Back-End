@@ -43,7 +43,11 @@ namespace Student_Registration_Web_App.Controllers
                 }
 
                 await _enrollmentRepository.AddEnrollmentAsync(enrollment);
-                return CreatedAtAction(nameof(GetEnrollments), new { id = enrollment.EnrollmentID }, enrollment);
+                return Ok(new
+                {
+                    Message = "Enrollment created successfully.",
+                    Data = enrollment
+                });
             }
             catch (Exception ex)
             {

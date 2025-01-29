@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Student_Registration_Web_App.Contracts;
 using Student_Registration_Web_App.EntityModels;
+using Student_Registration_Web_App.Repositories;
 using System;
 using System.Threading.Tasks;
 
@@ -12,6 +13,35 @@ namespace Student_Registration_Web_App.Controllers
     public class AdminController(IAdminRepository adminRepository) : ControllerBase
     {
         private readonly IAdminRepository _adminRepository = adminRepository;
+
+        [HttpPost("login")]
+        public async Task<ActionResult<Admin>> AdminLogin(AdminLoginRequest loginRequest)
+        {
+            try
+            {
+                if (loginRequest == null || string.IsNullOrEmpty(loginRequest.Username) || string.IsNullOrEmpty(loginRequest.Password))
+                {
+                    return BadRequest("Username and password are required.");
+                }
+
+                var admin = await _adminRepository.AdminLoginAsync(loginRequest.Username, loginRequest.Password);
+                if (admin == null)
+                {
+                    return Unauthorized("Invalid username or password.");
+                }
+
+                return Ok(new
+                {
+                    Message = "Admin login successful.",
+                    Data = admin,
+                    Role = "Admin"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
 
         [HttpGet("GetById/{adminId}")]
         public async Task<ActionResult<Admin>> GetAdminById(int adminId)
@@ -68,7 +98,11 @@ namespace Student_Registration_Web_App.Controllers
                 }
 
                 await _adminRepository.AddAdminAsync(admin);
-                return CreatedAtAction(nameof(GetAdmin), new { username = admin.Username }, admin);
+                return Ok(new
+                {
+                    Message = "Admin created successfully.",
+                    Data = admin
+                });
             }
             catch (Exception ex)
             {

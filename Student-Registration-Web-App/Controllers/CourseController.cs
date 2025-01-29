@@ -65,7 +65,11 @@ namespace Student_Registration_Web_App.Controllers
                 }
 
                 await _courseRepository.AddCourseAsync(course);
-                return CreatedAtAction(nameof(GetCourse), new { id = course.CourseID }, course);
+                return Ok(new
+                {
+                    Message = "Course created successfully.",
+                    Data = course
+                });
             }
             catch (Exception ex)
             {
